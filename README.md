@@ -289,7 +289,7 @@ pytest tests/integration/ -v
 ```
 
 
-## 6. Complete Tech Stack
+## Complete Tech Stack
 
 ```
 CATEGORY          TOOL                           VERSION    ROLE
@@ -326,7 +326,7 @@ pip install qdrant-client neo4j rank-bm25 anthropic \
 
 ---
 
-## 7. Project Directory Structure
+## Project Directory Structure
 
 ```
 nexus-rag/
@@ -424,7 +424,7 @@ nexus-rag/
 
 ---
 
-## 8. Database Schemas
+## Database Schemas
 
 ### PostgreSQL
 
@@ -553,243 +553,7 @@ for field, ftype in [
 
 ---
 
-## 10. Master Pipeline Orchestrator
-
-```python
-# nexus/pipeline/nexus_pipeline.py
-
-import asyncio, time
-import anthropic
-from dataclasses import dataclass
-from typing import Optional
-
-@dataclass
-class NexusResponse:
-    answer:                str
-    claims:                list          # list[ConfidenceClaim]
-    citations:             list
-    epistemic_decision:    str
-    conflicts_detected:    bool
-    conflict_message:      str
-    failure_diagnosis:     Optional[dict]
-    latency_ms:            float
-    cache_hit:             bool
-
-class NexusPipeline:
-    """Master orchestrator — 17 components, single coherent flow."""
-
-    def __init__(self, config: dict):
-        # Core pillars
-        self.encoder    = UnifiedEncoder()
-        self.kg         = TemporalKnowledgeGraph(config["neo4j_uri"], config["neo4j_auth"])
-        self.classifier = QueryDNAClassifier()
-        self.router     = AdaptiveRetrievalRouter(
-                            qdrant=self._qdrant(config), bm25=self._bm25(config),
-                            kg=self.kg, encoder=self.encoder)
-        self.conflict   = ConflictResolver()
-        self.uq         = UncertaintyQuantifier()
-        self.healer     = SelfHealingVerifier()
-        self.feedback   = FeedbackLearner(config["postgres_dsn"])
-        # Gap solutions
-        self.epistemic  = EpistemicSufficiencyEngine()
-        self.causal     = CausalCounterfactualLayer(self.kg)
-        self.xrag       = CrossLingualBridge()
-        self.amnesia    = AmnesiaEngine(
-                            self._qdrant(config), self.kg.driver,
-                            None, self._redis(config),
-                            self._pg(config), config.get("signing_key"))
-        self.streamer   = StreamingIngestor(self.encoder, self._qdrant(config),
-                                            None, self.kg)
-        self.chunker    = SemanticBoundaryChunker(self.encoder)
-        self.reranker   = ModalityAwareReranker()
-        self.forensics  = FailureForensicsEngine()
-        self.evolution  = KnowledgeEvolutionManager(self.kg, self._pg(config))
-        # Cache + LLM
-        self.cache      = SemanticCache(threshold=0.92)
-        self.llm        = anthropic.Anthropic()
-
-    async def query(self, query: str, language: str = "auto") -> NexusResponse:
-        t0 = time.time()
-
-        # 0. Semantic cache
-        cached = self.cache.get(query)
-        if cached:
-            return NexusResponse(**cached, latency_ms=(time.time()-t0)*1000,
-                                 cache_hit=True)
-
-        # 1. Streaming freshness flush
-        await self.streamer._flush()
-
-        # 2. Query DNA
-        dna = self.classifier.classify(query)
-
-        # 3. Cross-lingual bridge (if needed)
-        xl_ctx = None
-        if dna.multilingual > 0.3:
-            xl_ctx = self.xrag.build(query, dna.detected_language, [])
-
-        # 4. Parallel retrieval
-        chunks = await self.router.retrieve(dna, top_k=20)
-
-        # 5. Modality-aware reranking
-        reranked = self.reranker.rerank(query, dna, chunks, top_k=7)
-
-        # 6. Conflict resolution
-        conflict_report = self.conflict.resolve(reranked)
-        final_chunks    = conflict_report.resolved_chunks
-
-        # 7. Epistemic sufficiency
-        hypotheses  = await self._sample_hypotheses(query, final_chunks)
-        ep_report   = self.epistemic.evaluate(query, final_chunks, hypotheses)
-
-        if ep_report.decision.value == "abstain":
-            return self._abstain_response(ep_report, t0)
-
-        if ep_report.decision.value == "retrieve_more":
-            extra = await self.router.retrieve(dna, top_k=10)
-            final_chunks.extend(extra)
-
-        # 8. Generate with uncertainty quantification
-        raw_answer, claims = await self._generate_with_uncertainty(
-            query, final_chunks, dna, xl_ctx
-        )
-
-        # 9. Self-healing verification
-        healed = self.healer.verify_and_heal(
-            raw_answer, final_chunks, query, self.router
-        )
-
-        # 10. Cache result
-        self.cache.set(query, {
-            "answer": healed.healed_answer,
-            "claims": claims,
-            "citations": self._citations(final_chunks),
-            "epistemic_decision": ep_report.decision.value,
-            "conflicts_detected": conflict_report.detected,
-            "conflict_message": conflict_report.user_message,
-            "failure_diagnosis": None,
-        })
-
-        # 11. Feedback record
-        self.feedback.record(
-            query=query, chunks=final_chunks,
-            answer=healed.healed_answer, signal="pending",
-            latency_ms=(time.time()-t0)*1000
-        )
-
-        return NexusResponse(
-            answer=healed.healed_answer,
-            claims=claims,
-            citations=self._citations(final_chunks),
-            epistemic_decision=ep_report.decision.value,
-            conflicts_detected=conflict_report.detected,
-            conflict_message=conflict_report.user_message,
-            failure_diagnosis=None,
-            latency_ms=round((time.time()-t0)*1000, 1),
-            cache_hit=False
-        )
-
-    async def _sample_hypotheses(
-        self, query: str, chunks: list[UnifiedChunk], n: int = 4
-    ) -> list[str]:
-        """Generate n candidate answers at temperature > 0 for entropy estimation."""
-        ctx  = "\n\n".join(c.content for c in chunks[:5]
-                           if c.modality == Modality.TEXT)
-        resp = self.llm.messages.create(
-            model="claude-sonnet-4-6", max_tokens=400,
-            system="Answer the question. Be concise.",
-            messages=[{"role":"user","content":
-                       f"Context:\n{ctx}\n\nQuestion: {query}\n\nAnswer:"}]
-        )
-        base = resp.content[0].text
-        # For true entropy estimation, sample at T>0; simplified: return variations
-        return [base, f"Based on the evidence: {base}",
-                f"The data suggests: {base}", f"In summary: {base}"]
-
-    async def _generate_with_uncertainty(
-        self,
-        query:     str,
-        chunks:    list[UnifiedChunk],
-        dna:       QueryDNA,
-        xl_ctx:    Optional[XLingualContext]
-    ):
-        ctx    = "\n\n".join(c.content for c in chunks[:7]
-                              if c.modality == Modality.TEXT)
-        system = (
-            "You are a precise, citation-grounded assistant. "
-            "Answer using ONLY the provided context. "
-            "If the context does not support a claim, say so explicitly. "
-            + (xl_ctx.reasoning_scaffold if xl_ctx else "")
-        )
-        resp = self.llm.messages.create(
-            model="claude-sonnet-4-6", max_tokens=1024,
-            system=system,
-            messages=[{"role":"user","content":
-                       f"Context:\n{ctx}\n\nQuestion: {query}"}]
-        )
-        raw = resp.content[0].text
-
-        # Quantify uncertainty per claim
-        claims = []
-        for sentence in raw.split(". "):
-            if len(sentence.strip()) < 15:
-                continue
-            relevant_chunks = [c for c in chunks
-                                if c.modality == Modality.TEXT][:5]
-            cc = self.uq.quantify(sentence.strip(), relevant_chunks)
-            claims.append(cc)
-
-        return raw, claims
-
-    def _abstain_response(self, ep: EpistemicReport, t0: float) -> NexusResponse:
-        msg = (
-            "I cannot reliably answer this question — the evidence in my "
-            "knowledge base is insufficient or contradictory. "
-        )
-        if ep.suggested_sources:
-            msg += f"Suggested sources: {', '.join(ep.suggested_sources)}."
-        if ep.partial_evidence:
-            msg += "\n\nClosest available evidence:\n" + \
-                   "\n".join(f"• {e}" for e in ep.partial_evidence)
-        return NexusResponse(
-            answer=msg, claims=[], citations=[],
-            epistemic_decision="abstain",
-            conflicts_detected=False, conflict_message="",
-            failure_diagnosis=None,
-            latency_ms=round((time.time()-t0)*1000, 1),
-            cache_hit=False
-        )
-
-    def _citations(self, chunks: list[UnifiedChunk]) -> list[dict]:
-        return [
-            {"chunk_id": c.id,
-             "source": c.metadata.get("source_url", "unknown"),
-             "excerpt": (c.content[:120] + "…"
-                         if isinstance(c.content, str) else ""),
-             "credibility": c.credibility_score,
-             "language": c.language}
-            for c in chunks
-        ]
-
-    def _qdrant(self, cfg):
-        from qdrant_client import QdrantClient
-        return QdrantClient(host=cfg["qdrant_host"], port=cfg.get("qdrant_port",6333))
-
-    def _redis(self, cfg):
-        import redis
-        return redis.from_url(cfg["redis_url"])
-
-    def _pg(self, cfg):
-        import psycopg2
-        return psycopg2.connect(cfg["postgres_dsn"])
-
-    def _bm25(self, cfg):
-        return None   # Initialise from stored corpus on startup
-```
-
----
-
-## 13. Deployment Guide
+## Deployment Guide
 
 ### Environment Variables
 
@@ -906,7 +670,7 @@ curl -X POST http://localhost:8000/query \
 
 ---
 
-## 14. Evaluation & Benchmarks
+## Evaluation & Benchmarks
 
 | Metric | Target | How Measured |
 |--------|--------|--------------|
@@ -932,7 +696,7 @@ python tests/benchmarks/bench_speed.py
 
 ---
 
-## 15. Research References
+## Research References
 
 | Paper | Year | Venue | Validates |
 |-------|------|-------|-----------|
