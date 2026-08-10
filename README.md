@@ -1,15 +1,15 @@
 <div align="center">
-  <img src="assets/nexus_logo_v2.png" alt="NEXUS Logo" width="150" />
+ <img src="assets/nexus_logo_v2.png" alt="NEXUS Logo" width="150" />
 
-  # NEXUS RAG 
-  **Neural EXtensible Unified Search**
+ # NEXUS RAG 
+ **Neural EXtensible Unified Search**
 
-  *Enterprise-Grade Omnimodal RAG Pipeline with Epistemic Abstention & Self-Healing*
+ *Enterprise-Grade Omnimodal RAG Pipeline with Epistemic Abstention & Self-Healing*
 
-  [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![Architecture: 17-Component](https://img.shields.io/badge/Architecture-17--Component-success.svg)](#architecture)
-  
+ [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+ [![Architecture: 17-Component](https://img.shields.io/badge/Architecture-17--Component-success.svg)](#architecture)
+ 
 </div>
 
 ---
@@ -58,117 +58,117 @@ We are a team of AI researchers and engineers dedicated to solving the hardest p
 
 ```text
 ╔═════════════════════════════════════════════════════════════════════════════╗
-║                         NEXUS RAG — MASTER ARCHITECTURE                      ║
+║             NEXUS RAG — MASTER ARCHITECTURE           ║
 ╠═════════════════════════════════════════════════════════════════════════════╣
-║                                                                               ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │                     INPUT LAYER  (Any Modality)                      │    ║
-║  │  ┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬───────┐  │    ║
-║  │  │ Text │ PDF  │Image │Audio │Video │ Code │Table │Stream│Formula│  │    ║
-║  │  └──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴───────┘  │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [GAP 6]  SEMANTIC BOUNDARY CHUNKER                           │    ║
-║  │    Vision-guided · Discourse-aware · Topic-shift detection           │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 1]  OMNI-MODAL UNIFICATION ENGINE                    │    ║
-║  │    Single 1024-dim embedding space · All modalities comparable       │    ║
-║  └──────────────────┬────────────────────────┬──────────────────────────┘    ║
-║                     │                        │                                ║
-║                     ▼                        ▼                                ║
-║  ┌─────────────────────────┐   ┌──────────────────────────────────────┐      ║
-║  │  [PILLAR 2]             │   │  [GAP 2]  CAUSAL KNOWLEDGE GRAPH      │      ║
-║  │  TEMPORAL KNOWLEDGE     │   │  Cause-effect edges · What-if paths   │      ║
-║  │  GRAPH                  │   └──────────────────────────────────────┘      ║
-║  └─────────────────────────┘                                                  ║
-║                                                                               ║
-║  ══════════════════════════  QUERY ARRIVES  ═══════════════════════════════  ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [GAP 5]  STREAMING FRESHNESS CHECK                           │    ║
-║  │    Flush any pending micro-batch before answering                    │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │              SEMANTIC CACHE  (Cosine ≥ 0.92 → Instant Return)        │    ║
-║  └───────────────────────────MISS──────────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 3]  QUERY DNA CLASSIFIER                             │    ║
-║  │    10 dimensions · Routes to optimal retrieval strategy              │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [GAP 3]  CROSS-LINGUAL REASONING BRIDGE                      │    ║
-║  │    Concept extraction · Cultural alignment · Reasoning scaffold      │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 4]  ADAPTIVE RETRIEVAL ROUTER                        │    ║
-║  └────┬─────────────┬────────────────┬─────────────┬────────────────────┘    ║
-║       │             │                │             │                          ║
-║       ▼             ▼                ▼             ▼                          ║
-║  ┌─────────┐  ┌──────────┐  ┌────────────┐  ┌──────────┐                   ║
-║  │ Dense   │  │BM25+SPLADE│  │Causal Graph│  │Temporal  │                   ║
-║  │ HNSW    │  │ Sparse   │  │ Traversal  │  │ Search   │                   ║
-║  └─────────┘  └──────────┘  └────────────┘  └──────────┘                   ║
-║       │             │                │             │                          ║
-║       └─────────────┴────────────────┴─────────────┘                         ║
-║                                      │  RRF Fusion                            ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [GAP 7]  MODALITY-AWARE RERANKER                             │    ║
-║  │    Query-type × Modality weights · Cross-encoder scoring             │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 5]  CONFLICT RESOLUTION ENGINE                       │    ║
-║  │    NLI contradiction detection · Credibility scoring · Resolution    │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [GAP 1]  EPISTEMIC SUFFICIENCY ENGINE                        │    ║
-║  │    Entropy minimization · ANSWER / ABSTAIN / RETRIEVE_MORE          │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 6]  LLM GENERATION + UNCERTAINTY QUANTIFIER          │    ║
-║  │    Per-claim confidence · Streaming output · Source attribution      │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 7]  SELF-HEALING VERIFIER                            │    ║
-║  │    NLI claim verification · Auto-regenerate · Max 3 iterations       │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [GAP 8]  FAILURE FORENSICS ENGINE                            │    ║
-║  │    Retrieval / Comprehension / Reasoning / Parametric diagnosis      │    ║
-║  └───────────────────────────────────┬──────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║  ┌──────────────────────────────────────────────────────────────────────┐    ║
-║  │         [PILLAR 8]  SELF-OPTIMIZING FEEDBACK LOOP                    │    ║
-║  │    Signal recording · Weight rebalancing · Periodic fine-tune        │    ║
-║  └──────────────────────────────────────────────────────────────────────┘    ║
-║                                      │                                        ║
-║                                      ▼                                        ║
-║                  FINAL ANSWER + CITATIONS + PER-CLAIM CONFIDENCE              ║
+║                                        ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │           INPUT LAYER (Any Modality)           │  ║
+║ │ ┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬───────┐ │  ║
+║ │ │ Text │ PDF │Image │Audio │Video │ Code │Table │Stream│Formula│ │  ║
+║ │ └──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴───────┘ │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [GAP 6] SEMANTIC BOUNDARY CHUNKER              │  ║
+║ │  Vision-guided · Discourse-aware · Topic-shift detection      │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 1] OMNI-MODAL UNIFICATION ENGINE          │  ║
+║ │  Single 1024-dim embedding space · All modalities comparable    │  ║
+║ └──────────────────┬────────────────────────┬──────────────────────────┘  ║
+║           │            │                ║
+║           ▼            ▼                ║
+║ ┌─────────────────────────┐  ┌──────────────────────────────────────┐   ║
+║ │ [PILLAR 2]       │  │ [GAP 2] CAUSAL KNOWLEDGE GRAPH   │   ║
+║ │ TEMPORAL KNOWLEDGE   │  │ Cause-effect edges · What-if paths  │   ║
+║ │ GRAPH         │  └──────────────────────────────────────┘   ║
+║ └─────────────────────────┘                         ║
+║                                        ║
+║ ══════════════════════════ QUERY ARRIVES ═══════════════════════════════ ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [GAP 5] STREAMING FRESHNESS CHECK              │  ║
+║ │  Flush any pending micro-batch before answering          │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │       SEMANTIC CACHE (Cosine ≥ 0.92 → Instant Return)    │  ║
+║ └───────────────────────────MISS──────────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 3] QUERY DNA CLASSIFIER               │  ║
+║ │  10 dimensions · Routes to optimal retrieval strategy       │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [GAP 3] CROSS-LINGUAL REASONING BRIDGE           │  ║
+║ │  Concept extraction · Cultural alignment · Reasoning scaffold   │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 4] ADAPTIVE RETRIEVAL ROUTER            │  ║
+║ └────┬─────────────┬────────────────┬─────────────┬────────────────────┘  ║
+║    │       │        │       │             ║
+║    ▼       ▼        ▼       ▼             ║
+║ ┌─────────┐ ┌──────────┐ ┌────────────┐ ┌──────────┐          ║
+║ │ Dense  │ │BM25+SPLADE│ │Causal Graph│ │Temporal │          ║
+║ │ HNSW  │ │ Sparse  │ │ Traversal │ │ Search  │          ║
+║ └─────────┘ └──────────┘ └────────────┘ └──────────┘          ║
+║    │       │        │       │             ║
+║    └─────────────┴────────────────┴─────────────┘             ║
+║                   │ RRF Fusion              ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [GAP 7] MODALITY-AWARE RERANKER               │  ║
+║ │  Query-type × Modality weights · Cross-encoder scoring       │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 5] CONFLICT RESOLUTION ENGINE            │  ║
+║ │  NLI contradiction detection · Credibility scoring · Resolution  │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [GAP 1] EPISTEMIC SUFFICIENCY ENGINE            │  ║
+║ │  Entropy minimization · ANSWER / ABSTAIN / RETRIEVE_MORE     │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 6] LLM GENERATION + UNCERTAINTY QUANTIFIER     │  ║
+║ │  Per-claim confidence · Streaming output · Source attribution   │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 7] SELF-HEALING VERIFIER              │  ║
+║ │  NLI claim verification · Auto-regenerate · Max 3 iterations    │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [GAP 8] FAILURE FORENSICS ENGINE              │  ║
+║ │  Retrieval / Comprehension / Reasoning / Parametric diagnosis   │  ║
+║ └───────────────────────────────────┬──────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║ ┌──────────────────────────────────────────────────────────────────────┐  ║
+║ │     [PILLAR 8] SELF-OPTIMIZING FEEDBACK LOOP          │  ║
+║ │  Signal recording · Weight rebalancing · Periodic fine-tune    │  ║
+║ └──────────────────────────────────────────────────────────────────────┘  ║
+║                   │                    ║
+║                   ▼                    ║
+║         FINAL ANSWER + CITATIONS + PER-CLAIM CONFIDENCE       ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -211,7 +211,7 @@ cd NexusRAGPipeline
 
 # Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate # Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -e ".[dev]"
@@ -285,50 +285,50 @@ EPISTEMIC_MAX_ENTROPY=0.85
 # docker-compose.yml
 version: "3.9"
 services:
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports: ["6333:6333"]
-    volumes: ["./data/qdrant:/qdrant/storage"]
+ qdrant:
+  image: qdrant/qdrant:latest
+  ports: ["6333:6333"]
+  volumes: ["./data/qdrant:/qdrant/storage"]
 
-  neo4j:
-    image: neo4j:5
-    ports: ["7474:7474", "7687:7687"]
-    environment:
-      NEO4J_AUTH: "neo4j/nexus_password"
-    volumes: ["./data/neo4j:/data"]
+ neo4j:
+  image: neo4j:5
+  ports: ["7474:7474", "7687:7687"]
+  environment:
+   NEO4J_AUTH: "neo4j/nexus_password"
+  volumes: ["./data/neo4j:/data"]
 
-  postgres:
-    image: postgres:16
-    ports: ["5432:5432"]
-    environment:
-      POSTGRES_DB: nexus
-      POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus_password
-    volumes: ["./data/pg:/var/lib/postgresql/data"]
+ postgres:
+  image: postgres:16
+  ports: ["5432:5432"]
+  environment:
+   POSTGRES_DB: nexus
+   POSTGRES_USER: nexus
+   POSTGRES_PASSWORD: nexus_password
+  volumes: ["./data/pg:/var/lib/postgresql/data"]
 
-  redis:
-    image: redis:7.2
-    ports: ["6379:6379"]
+ redis:
+  image: redis:7.2
+  ports: ["6379:6379"]
 
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    ports: ["9092:9092"]
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+ kafka:
+  image: confluentinc/cp-kafka:latest
+  ports: ["9092:9092"]
+  environment:
+   KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+   KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
 
-  api:
-    build: .
-    ports: ["8000:8000"]
-    env_file: .env
-    depends_on: [qdrant, neo4j, postgres, redis, kafka]
-    command: uvicorn nexus.api.main:app --host 0.0.0.0 --port 8000 --reload
+ api:
+  build: .
+  ports: ["8000:8000"]
+  env_file: .env
+  depends_on: [qdrant, neo4j, postgres, redis, kafka]
+  command: uvicorn nexus.api.main:app --host 0.0.0.0 --port 8000 --reload
 
-  worker:
-    build: .
-    command: celery -A nexus.tasks worker --loglevel=info
-    env_file: .env
-    depends_on: [redis, postgres]
+ worker:
+  build: .
+  command: celery -A nexus.tasks worker --loglevel=info
+  env_file: .env
+  depends_on: [redis, postgres]
 ```
 
 ### Quick Start
@@ -352,13 +352,13 @@ uvicorn nexus.api.main:app --reload
 
 # 5. Ingest a test document
 curl -X POST http://localhost:8000/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Hello from NEXUS RAG!", "metadata": {"source": "test"}}'
+ -H "Content-Type: application/json" \
+ -d '{"text": "Hello from NEXUS RAG!", "metadata": {"source": "test"}}'
 
 # 6. Query
 curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What does NEXUS stand for?"}'
+ -H "Content-Type: application/json" \
+ -d '{"query": "What does NEXUS stand for?"}'
 ```
 
 ---
@@ -388,89 +388,89 @@ nexus-rag/
 ├── docker-compose.yml
 │
 ├── nexus/
-│   ├── __init__.py
-│   ├── config.py                     # All env-driven config
-│   │
-│   ├── core/                         # 8 Core Pillars
-│   │   ├── unified_encoder.py        # Pillar 1
-│   │   ├── knowledge_graph.py        # Pillar 2
-│   │   ├── query_classifier.py       # Pillar 3
-│   │   ├── retrieval_router.py       # Pillar 4
-│   │   ├── conflict_resolver.py      # Pillar 5
-│   │   ├── uncertainty_quantifier.py # Pillar 6
-│   │   ├── self_healer.py            # Pillar 7
-│   │   └── feedback_loop.py          # Pillar 8
-│   │
-│   ├── gaps/                         # 9 Gap Solutions
-│   │   ├── epistemic_engine.py       # Gap 1
-│   │   ├── causal_counterfactual.py  # Gap 2
-│   │   ├── cross_lingual_bridge.py   # Gap 3
-│   │   ├── amnesia_engine.py         # Gap 4
-│   │   ├── streaming_ingestor.py     # Gap 5
-│   │   ├── semantic_chunker.py       # Gap 6
-│   │   ├── modality_reranker.py      # Gap 7
-│   │   ├── forensics_engine.py       # Gap 8
-│   │   └── knowledge_evolution.py    # Gap 9
-│   │
-│   ├── pipeline/
-│   │   ├── nexus_pipeline.py         # Master orchestrator
-│   │   ├── ingest_pipeline.py        # Document ingest flow
-│   │   └── query_pipeline.py         # Query answer flow
-│   │
-│   ├── storage/
-│   │   ├── qdrant_store.py
-│   │   ├── neo4j_store.py
-│   │   ├── postgres_store.py
-│   │   ├── redis_cache.py
-│   │   └── bm25_store.py
-│   │
-│   ├── api/
-│   │   ├── main.py
-│   │   ├── routes/
-│   │   │   ├── query.py       # POST /query
-│   │   │   ├── ingest.py      # POST /ingest
-│   │   │   ├── forget.py      # POST /forget
-│   │   │   ├── feedback.py    # POST /feedback
-│   │   │   └── health.py      # GET /health
-│   │   └── models/
-│   │       ├── requests.py
-│   │       └── responses.py
-│   │
-│   ├── tasks.py                      # Celery tasks (fine-tuning, eviction)
-│   └── utils/
-│       ├── language.py
-│       ├── document_parser.py
-│       ├── credibility_scorer.py
-│       └── logging.py
+│  ├── __init__.py
+│  ├── config.py           # All env-driven config
+│  │
+│  ├── core/             # 8 Core Pillars
+│  │  ├── unified_encoder.py    # Pillar 1
+│  │  ├── knowledge_graph.py    # Pillar 2
+│  │  ├── query_classifier.py    # Pillar 3
+│  │  ├── retrieval_router.py    # Pillar 4
+│  │  ├── conflict_resolver.py   # Pillar 5
+│  │  ├── uncertainty_quantifier.py # Pillar 6
+│  │  ├── self_healer.py      # Pillar 7
+│  │  └── feedback_loop.py     # Pillar 8
+│  │
+│  ├── gaps/             # 9 Gap Solutions
+│  │  ├── epistemic_engine.py    # Gap 1
+│  │  ├── causal_counterfactual.py # Gap 2
+│  │  ├── cross_lingual_bridge.py  # Gap 3
+│  │  ├── amnesia_engine.py     # Gap 4
+│  │  ├── streaming_ingestor.py   # Gap 5
+│  │  ├── semantic_chunker.py    # Gap 6
+│  │  ├── modality_reranker.py   # Gap 7
+│  │  ├── forensics_engine.py    # Gap 8
+│  │  └── knowledge_evolution.py  # Gap 9
+│  │
+│  ├── pipeline/
+│  │  ├── nexus_pipeline.py     # Master orchestrator
+│  │  ├── ingest_pipeline.py    # Document ingest flow
+│  │  └── query_pipeline.py     # Query answer flow
+│  │
+│  ├── storage/
+│  │  ├── qdrant_store.py
+│  │  ├── neo4j_store.py
+│  │  ├── postgres_store.py
+│  │  ├── redis_cache.py
+│  │  └── bm25_store.py
+│  │
+│  ├── api/
+│  │  ├── main.py
+│  │  ├── routes/
+│  │  │  ├── query.py    # POST /query
+│  │  │  ├── ingest.py   # POST /ingest
+│  │  │  ├── forget.py   # POST /forget
+│  │  │  ├── feedback.py  # POST /feedback
+│  │  │  └── health.py   # GET /health
+│  │  └── models/
+│  │    ├── requests.py
+│  │    └── responses.py
+│  │
+│  ├── tasks.py           # Celery tasks (fine-tuning, eviction)
+│  └── utils/
+│    ├── language.py
+│    ├── document_parser.py
+│    ├── credibility_scorer.py
+│    └── logging.py
 │
 ├── tests/
-│   ├── unit/
-│   │   ├── test_encoder.py
-│   │   ├── test_classifier.py
-│   │   ├── test_conflict_resolver.py
-│   │   ├── test_epistemic_engine.py
-│   │   ├── test_amnesia_engine.py
-│   │   └── test_chunker.py
-│   ├── integration/
-│   │   ├── test_full_pipeline.py
-│   │   ├── test_streaming.py
-│   │   └── test_cross_lingual.py
-│   └── benchmarks/
-│       ├── bench_speed.py
-│       ├── bench_accuracy.py
-│       └── bench_hallucination.py
+│  ├── unit/
+│  │  ├── test_encoder.py
+│  │  ├── test_classifier.py
+│  │  ├── test_conflict_resolver.py
+│  │  ├── test_epistemic_engine.py
+│  │  ├── test_amnesia_engine.py
+│  │  └── test_chunker.py
+│  ├── integration/
+│  │  ├── test_full_pipeline.py
+│  │  ├── test_streaming.py
+│  │  └── test_cross_lingual.py
+│  └── benchmarks/
+│    ├── bench_speed.py
+│    ├── bench_accuracy.py
+│    └── bench_hallucination.py
 │
 ├── scripts/
-│   ├── setup_qdrant.py
-│   ├── setup_neo4j.py
-│   ├── setup_postgres.py
-│   ├── bulk_ingest.py
-│   └── run_eval.py
+│  ├── setup_qdrant.py
+│  ├── setup_neo4j.py
+│  ├── setup_postgres.py
+│  ├── bulk_ingest.py
+│  └── run_eval.py
 │
 └── docker/
-    ├── Dockerfile
-    ├── docker-compose.dev.yml
-    └── docker-compose.prod.yml
+  ├── Dockerfile
+  ├── docker-compose.dev.yml
+  └── docker-compose.prod.yml
 ```
 
 ---
@@ -478,36 +478,36 @@ nexus-rag/
 ## Complete Tech Stack
 
 ```
-CATEGORY          TOOL                           VERSION    ROLE
+CATEGORY     TOOL              VERSION  ROLE
 ─────────────────────────────────────────────────────────────────────────────
-Vector DB         Qdrant                         1.9+       HNSW index + filters
-Knowledge Graph   Neo4j                          5.x        Temporal + causal graph
-Sparse Retrieval  rank_bm25 (BM25Okapi)         0.2.2      Keyword search
-Streaming         Apache Kafka                   3.6        Event stream source
-Cache             Redis                          7.2        Semantic cache + tasks
-Relational DB     PostgreSQL                     16         Feedback / certs / lineage
-Text Embedding    intfloat/e5-large-v2           latest     Primary dense encoder
-Multilingual Emb  intfloat/multilingual-e5-large latest     Cross-lingual bridge
-Code Embedding    microsoft/codebert-base        latest     Code understanding
-Table Model       google/tapas-base              latest     Table comprehension
-Image Encoder     openai/clip-vit-large-patch14  latest     Image embeddings
-Audio Model       openai/whisper-base            latest     Transcription + audio
-Cross-Encoder     ms-marco-MiniLM-L-6-v2         latest     Reranking
-NLI Model         nli-deberta-v3-small           latest     Conflict + verification
-LLM               claude-sonnet-4-6              latest     Generation + reasoning
-API Framework     FastAPI + uvicorn              0.110+     REST API
-Task Queue        Celery                         5.3        Async fine-tuning jobs
-Containerisation  Docker + Docker Compose        latest     Local dev
-Orchestration     Kubernetes                     1.29+      Production
-Monitoring        LangSmith                      latest     Full pipeline tracing
+Vector DB     Qdrant             1.9+    HNSW index + filters
+Knowledge Graph  Neo4j             5.x    Temporal + causal graph
+Sparse Retrieval rank_bm25 (BM25Okapi)     0.2.2   Keyword search
+Streaming     Apache Kafka          3.6    Event stream source
+Cache       Redis             7.2    Semantic cache + tasks
+Relational DB   PostgreSQL           16     Feedback / certs / lineage
+Text Embedding  intfloat/e5-large-v2      latest   Primary dense encoder
+Multilingual Emb intfloat/multilingual-e5-large latest   Cross-lingual bridge
+Code Embedding  microsoft/codebert-base    latest   Code understanding
+Table Model    google/tapas-base       latest   Table comprehension
+Image Encoder   openai/clip-vit-large-patch14 latest   Image embeddings
+Audio Model    openai/whisper-base      latest   Transcription + audio
+Cross-Encoder   ms-marco-MiniLM-L-6-v2     latest   Reranking
+NLI Model     nli-deberta-v3-small      latest   Conflict + verification
+LLM        claude-sonnet-4-6       latest   Generation + reasoning
+API Framework   FastAPI + uvicorn       0.110+   REST API
+Task Queue    Celery             5.3    Async fine-tuning jobs
+Containerisation Docker + Docker Compose    latest   Local dev
+Orchestration   Kubernetes           1.29+   Production
+Monitoring    LangSmith           latest   Full pipeline tracing
 ```
 
 **One-shot install:**
 ```bash
 pip install qdrant-client neo4j rank-bm25 anthropic \
-            sentence-transformers transformers torch fastapi uvicorn \
-            celery redis psycopg2-binary kafka-python openai-whisper \
-            langsmith langdetect spacy numpy pydantic clip-by-openai
+      sentence-transformers transformers torch fastapi uvicorn \
+      celery redis psycopg2-binary kafka-python openai-whisper \
+      langsmith langdetect spacy numpy pydantic clip-by-openai
 ```
 
 ---
@@ -519,83 +519,83 @@ pip install qdrant-client neo4j rank-bm25 anthropic \
 ```sql
 -- Core chunk metadata
 CREATE TABLE chunks (
-    id              UUID PRIMARY KEY,
-    source_id       VARCHAR(512),
-    modality        VARCHAR(50),
-    language        CHAR(2),
-    content_hash    VARCHAR(64) UNIQUE,
-    credibility     FLOAT    DEFAULT 0.5,
-    valid_from      TIMESTAMPTZ,
-    valid_until     TIMESTAMPTZ,
-    status          VARCHAR(50) DEFAULT 'current',
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+  id       UUID PRIMARY KEY,
+  source_id    VARCHAR(512),
+  modality    VARCHAR(50),
+  language    CHAR(2),
+  content_hash  VARCHAR(64) UNIQUE,
+  credibility   FLOAT  DEFAULT 0.5,
+  valid_from   TIMESTAMPTZ,
+  valid_until   TIMESTAMPTZ,
+  status     VARCHAR(50) DEFAULT 'current',
+  created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Retrieval weights (feedback-driven)
 CREATE TABLE chunk_weights (
-    chunk_id        UUID REFERENCES chunks(id) ON DELETE CASCADE,
-    query_type      VARCHAR(50),
-    weight          FLOAT DEFAULT 1.0,
-    positive_count  INT   DEFAULT 0,
-    negative_count  INT   DEFAULT 0,
-    updated_at      TIMESTAMPTZ DEFAULT NOW(),
-    PRIMARY KEY (chunk_id, query_type)
+  chunk_id    UUID REFERENCES chunks(id) ON DELETE CASCADE,
+  query_type   VARCHAR(50),
+  weight     FLOAT DEFAULT 1.0,
+  positive_count INT  DEFAULT 0,
+  negative_count INT  DEFAULT 0,
+  updated_at   TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (chunk_id, query_type)
 );
 
 -- Query feedback log
 CREATE TABLE feedback_log (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    query           TEXT,
-    chunk_ids       UUID[],
-    answer          TEXT,
-    user_signal     VARCHAR(20),
-    latency_ms      FLOAT,
-    failure_type    VARCHAR(50),
-    ts              TIMESTAMPTZ DEFAULT NOW()
+  id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  query      TEXT,
+  chunk_ids    UUID[],
+  answer     TEXT,
+  user_signal   VARCHAR(20),
+  latency_ms   FLOAT,
+  failure_type  VARCHAR(50),
+  ts       TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Fine-tuning pairs (positive query-chunk pairs)
 CREATE TABLE fine_tune_pairs (
-    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    query             TEXT,
-    positive_chunk_id UUID REFERENCES chunks(id),
-    negative_chunk_id UUID REFERENCES chunks(id),
-    ts                TIMESTAMPTZ DEFAULT NOW()
+  id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  query       TEXT,
+  positive_chunk_id UUID REFERENCES chunks(id),
+  negative_chunk_id UUID REFERENCES chunks(id),
+  ts        TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- GDPR deletion certificates (audit trail)
 CREATE TABLE deletion_certificates (
-    id                UUID PRIMARY KEY,
-    target            TEXT,
-    target_type       VARCHAR(50),
-    deletion_ts       TIMESTAMPTZ,
-    verification_hash VARCHAR(64),
-    signature         VARCHAR(64),
-    completeness      VARCHAR(50),
-    regulations       TEXT[],
-    created_at        TIMESTAMPTZ DEFAULT NOW()
+  id        UUID PRIMARY KEY,
+  target      TEXT,
+  target_type    VARCHAR(50),
+  deletion_ts    TIMESTAMPTZ,
+  verification_hash VARCHAR(64),
+  signature     VARCHAR(64),
+  completeness   VARCHAR(50),
+  regulations    TEXT[],
+  created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Knowledge evolution events
 CREATE TABLE evolution_log (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_type   VARCHAR(50),
-    old_fact_id  VARCHAR(255),
-    new_fact_id  VARCHAR(255),
-    reason       TEXT,
-    trigger      VARCHAR(50),
-    ts           TIMESTAMPTZ DEFAULT NOW()
+  id      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_type  VARCHAR(50),
+  old_fact_id VARCHAR(255),
+  new_fact_id VARCHAR(255),
+  reason    TEXT,
+  trigger   VARCHAR(50),
+  ts      TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Conflict resolution events
 CREATE TABLE conflict_log (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    query        TEXT,
-    strategy     VARCHAR(50),
-    chunk_a_id   UUID,
-    chunk_b_id   UUID,
-    user_message TEXT,
-    ts           TIMESTAMPTZ DEFAULT NOW()
+  id      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  query    TEXT,
+  strategy   VARCHAR(50),
+  chunk_a_id  UUID,
+  chunk_b_id  UUID,
+  user_message TEXT,
+  ts      TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -619,24 +619,24 @@ CREATE INDEX IF NOT EXISTS FOR (n:Node) ON (n.status);
 
 ```python
 from qdrant_client.models import (
-    Distance, VectorParams, HnswConfigDiff,
-    PayloadSchemaType, OptimizersConfigDiff
+  Distance, VectorParams, HnswConfigDiff,
+  PayloadSchemaType, OptimizersConfigDiff
 )
 
 client.create_collection(
-    collection_name="nexus_knowledge",
-    vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
-    hnsw_config=HnswConfigDiff(m=16, ef_construct=200),
-    optimizers_config=OptimizersConfigDiff(indexing_threshold=20_000)
+  collection_name="nexus_knowledge",
+  vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
+  hnsw_config=HnswConfigDiff(m=16, ef_construct=200),
+  optimizers_config=OptimizersConfigDiff(indexing_threshold=20_000)
 )
 for field, ftype in [
-    ("modality",     PayloadSchemaType.KEYWORD),
-    ("language",     PayloadSchemaType.KEYWORD),
-    ("is_streaming", PayloadSchemaType.BOOL),
-    ("valid_from",   PayloadSchemaType.FLOAT),
-    ("credibility",  PayloadSchemaType.FLOAT),
+  ("modality",   PayloadSchemaType.KEYWORD),
+  ("language",   PayloadSchemaType.KEYWORD),
+  ("is_streaming", PayloadSchemaType.BOOL),
+  ("valid_from",  PayloadSchemaType.FLOAT),
+  ("credibility", PayloadSchemaType.FLOAT),
 ]:
-    client.create_payload_index("nexus_knowledge", field, ftype)
+  client.create_payload_index("nexus_knowledge", field, ftype)
 ```
 
 ---
@@ -713,10 +713,10 @@ pytest tests/integration/ -v
 
 ---
 
-> **Where to start today:**  
-> `docker-compose up -d` → `python scripts/setup_qdrant.py` → implement `SemanticBoundaryChunker` → implement `UnifiedEncoder` for text.  
-> Everything else builds on those two.  
->  
-> **Single highest-impact first feature:**  
-> `AmnesiaEngine` (Gap 4) — it is the only component with a legal deadline (EU AI Act, August 2025). No other open-source RAG system has it.
+> **Where to start today:** 
+> `docker-compose up -d` → `python scripts/setup_qdrant.py` → implement `SemanticBoundaryChunker` → implement `UnifiedEncoder` for text. 
+> Everything else builds on those two. 
+> 
+> **Single highest-impact first feature:** 
+> `AmnesiaEngine` (Gap 4) — it is the only component with a legal deadline . No other open-source RAG system has it.
 
