@@ -9,8 +9,7 @@
   [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Architecture: 17-Component](https://img.shields.io/badge/Architecture-17--Component-success.svg)](#architecture)
-  [![EU AI Act Ready](https://img.shields.io/badge/Compliance-EU_AI_Act_Ready-purple.svg)](#compliance--gdpr)
-
+  
 </div>
 
 ---
@@ -642,7 +641,7 @@ for field, ftype in [
 
 ---
 
-## ⚖️ Compliance (GDPR / EU AI Act)
+## ⚖️ Compliance & Privacy (GDPR)
 
 NEXUS RAG is designed to meet strict regulatory standards:
 - **Right to Be Forgotten:** The `AmnesiaEngine` traces data lineage across all stores and issues HMAC-signed deletion certificates.
