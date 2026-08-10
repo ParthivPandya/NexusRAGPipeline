@@ -26,6 +26,12 @@ Every component serves three master principles:
 2. **HONESTY OVER COMPLETENESS** — better to abstain than to hallucinate
 3. **EVOLUTION OVER STASIS** — the system must improve with every query
 
+### About Us
+We are a team of AI researchers and engineers dedicated to solving the hardest problems in generative AI: hallucinations, data privacy, and multi-modal reasoning. NEXUS was built from the ground up to bring state-of-the-art academic research into a production-ready enterprise pipeline.
+
+### Keywords for Search
+`RAG`, `RAGPipeline`, `Retrieval-Augmented Generation`, `LLM`, `Generative AI`, `Knowledge Graph`, `Machine Unlearning`, `Enterprise AI`, `Multi-Modal`, `Anthropic`, `Qdrant`, `Neo4j`, `Semantic Search`, `Agentic AI`
+
 ---
 
 ## ✨ What Makes NEXUS Different
