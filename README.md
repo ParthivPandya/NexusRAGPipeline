@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://via.placeholder.com/150x150.png?text=NEXUS" alt="NEXUS Logo" width="120" />
+  <img src="assets/nexus_logo.png" alt="NEXUS Logo" width="150" />
 
   # NEXUS RAG 
   **Neural EXtensible Unified Search**
