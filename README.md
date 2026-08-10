@@ -192,20 +192,6 @@ Every component serves three master principles:
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Vector Database:** Qdrant (HNSW, Cosine, 1024-dim)
-- **Knowledge Graph:** Neo4j (Temporal & Causal Edges)
-- **Sparse Retrieval:** BM25 (Okapi)
-- **Relational / Audit:** PostgreSQL
-- **Cache / Message Broker:** Redis + Kafka
-- **Embeddings:** `intfloat/e5-large-v2`, `CLIP`, `Whisper`
-- **Cross-Encoders:** `ms-marco-MiniLM-L-6-v2`, `nli-deberta-v3-small`
-- **LLM:** Anthropic Claude (Sonnet 3.5 / Opus)
-- **API:** FastAPI + Uvicorn + Celery
-
----
-
 ## 🚦 Quick Start
 
 ### 1. Prerequisites
@@ -255,6 +241,123 @@ docker-compose up -d api worker
 
 ---
 
+## Deployment Guide
+
+### Environment Variables
+
+```bash
+# .env.example
+
+ANTHROPIC_API_KEY=sk-ant-...
+
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=nexus_password
+
+POSTGRES_DSN=postgresql://nexus:nexus_password@localhost:5432/nexus
+
+REDIS_URL=redis://localhost:6379
+
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_TOPIC=nexus-stream
+
+SIGNING_KEY=<32-byte-hex>
+
+LANGSMITH_API_KEY=ls__...
+LANGSMITH_PROJECT=nexus-rag-v1
+
+FINE_TUNE_EVERY_N_QUERIES=1000
+EPISTEMIC_EPSILON=0.15
+EPISTEMIC_MAX_ENTROPY=0.85
+```
+
+### Docker Compose (Development)
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports: ["6333:6333"]
+    volumes: ["./data/qdrant:/qdrant/storage"]
+
+  neo4j:
+    image: neo4j:5
+    ports: ["7474:7474", "7687:7687"]
+    environment:
+      NEO4J_AUTH: "neo4j/nexus_password"
+    volumes: ["./data/neo4j:/data"]
+
+  postgres:
+    image: postgres:16
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus_password
+    volumes: ["./data/pg:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7.2
+    ports: ["6379:6379"]
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  api:
+    build: .
+    ports: ["8000:8000"]
+    env_file: .env
+    depends_on: [qdrant, neo4j, postgres, redis, kafka]
+    command: uvicorn nexus.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build: .
+    command: celery -A nexus.tasks worker --loglevel=info
+    env_file: .env
+    depends_on: [redis, postgres]
+```
+
+### Quick Start
+
+```bash
+# 1. Clone and install
+git clone https://github.com/your-org/nexus-rag
+cd nexus-rag
+pip install -e ".[dev]"
+
+# 2. Start infrastructure
+docker-compose up -d
+
+# 3. Initialise databases
+python scripts/setup_qdrant.py
+python scripts/setup_neo4j.py
+python scripts/setup_postgres.py
+
+# 4. Start API
+uvicorn nexus.api.main:app --reload
+
+# 5. Ingest a test document
+curl -X POST http://localhost:8000/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello from NEXUS RAG!", "metadata": {"source": "test"}}'
+
+# 6. Query
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What does NEXUS stand for?"}'
+```
+
+---
+
 ## 📖 API Documentation
 
 Once the server is running, visit `http://localhost:8000/docs` for the interactive Swagger UI.
@@ -266,63 +369,6 @@ Once the server is running, visit `http://localhost:8000/docs` for the interacti
 - `POST /feedback`: Submit user feedback for the self-optimizing loop
 - `POST /forget`: Issue a GDPR-compliant machine unlearning deletion
 - `GET /health`: Component health checks
-
----
-
-## ⚖️ Compliance (GDPR / EU AI Act)
-
-NEXUS RAG is designed to meet strict regulatory standards:
-- **Right to Be Forgotten:** The `AmnesiaEngine` traces data lineage across all stores and issues HMAC-signed deletion certificates.
-- **Traceability:** The `KnowledgeEvolutionManager` ensures facts are never silently deleted, maintaining a full audit trail of fact supersession.
-- **Transparency:** The `SelfHealingVerifier` flags unsupported claims as `[⚠️ UNCERTAIN]` rather than hallucinating.
-
----
-
-## 🧪 Testing
-
-```bash
-# Run unit tests (no external services needed)
-pytest tests/unit/ -v
-
-# Run integration tests (requires docker-compose infrastructure)
-pytest tests/integration/ -v
-```
-
-
-## Complete Tech Stack
-
-```
-CATEGORY          TOOL                           VERSION    ROLE
-─────────────────────────────────────────────────────────────────────────────
-Vector DB         Qdrant                         1.9+       HNSW index + filters
-Knowledge Graph   Neo4j                          5.x        Temporal + causal graph
-Sparse Retrieval  rank_bm25 (BM25Okapi)         0.2.2      Keyword search
-Streaming         Apache Kafka                   3.6        Event stream source
-Cache             Redis                          7.2        Semantic cache + tasks
-Relational DB     PostgreSQL                     16         Feedback / certs / lineage
-Text Embedding    intfloat/e5-large-v2           latest     Primary dense encoder
-Multilingual Emb  intfloat/multilingual-e5-large latest     Cross-lingual bridge
-Code Embedding    microsoft/codebert-base        latest     Code understanding
-Table Model       google/tapas-base              latest     Table comprehension
-Image Encoder     openai/clip-vit-large-patch14  latest     Image embeddings
-Audio Model       openai/whisper-base            latest     Transcription + audio
-Cross-Encoder     ms-marco-MiniLM-L-6-v2         latest     Reranking
-NLI Model         nli-deberta-v3-small           latest     Conflict + verification
-LLM               claude-sonnet-4-6              latest     Generation + reasoning
-API Framework     FastAPI + uvicorn              0.110+     REST API
-Task Queue        Celery                         5.3        Async fine-tuning jobs
-Containerisation  Docker + Docker Compose        latest     Local dev
-Orchestration     Kubernetes                     1.29+      Production
-Monitoring        LangSmith                      latest     Full pipeline tracing
-```
-
-**One-shot install:**
-```bash
-pip install qdrant-client neo4j rank-bm25 anthropic \
-            sentence-transformers transformers torch fastapi uvicorn \
-            celery redis psycopg2-binary kafka-python openai-whisper \
-            langsmith langdetect spacy numpy pydantic clip-by-openai
-```
 
 ---
 
@@ -420,6 +466,43 @@ nexus-rag/
     ├── Dockerfile
     ├── docker-compose.dev.yml
     └── docker-compose.prod.yml
+```
+
+---
+
+## Complete Tech Stack
+
+```
+CATEGORY          TOOL                           VERSION    ROLE
+─────────────────────────────────────────────────────────────────────────────
+Vector DB         Qdrant                         1.9+       HNSW index + filters
+Knowledge Graph   Neo4j                          5.x        Temporal + causal graph
+Sparse Retrieval  rank_bm25 (BM25Okapi)         0.2.2      Keyword search
+Streaming         Apache Kafka                   3.6        Event stream source
+Cache             Redis                          7.2        Semantic cache + tasks
+Relational DB     PostgreSQL                     16         Feedback / certs / lineage
+Text Embedding    intfloat/e5-large-v2           latest     Primary dense encoder
+Multilingual Emb  intfloat/multilingual-e5-large latest     Cross-lingual bridge
+Code Embedding    microsoft/codebert-base        latest     Code understanding
+Table Model       google/tapas-base              latest     Table comprehension
+Image Encoder     openai/clip-vit-large-patch14  latest     Image embeddings
+Audio Model       openai/whisper-base            latest     Transcription + audio
+Cross-Encoder     ms-marco-MiniLM-L-6-v2         latest     Reranking
+NLI Model         nli-deberta-v3-small           latest     Conflict + verification
+LLM               claude-sonnet-4-6              latest     Generation + reasoning
+API Framework     FastAPI + uvicorn              0.110+     REST API
+Task Queue        Celery                         5.3        Async fine-tuning jobs
+Containerisation  Docker + Docker Compose        latest     Local dev
+Orchestration     Kubernetes                     1.29+      Production
+Monitoring        LangSmith                      latest     Full pipeline tracing
+```
+
+**One-shot install:**
+```bash
+pip install qdrant-client neo4j rank-bm25 anthropic \
+            sentence-transformers transformers torch fastapi uvicorn \
+            celery redis psycopg2-binary kafka-python openai-whisper \
+            langsmith langdetect spacy numpy pydantic clip-by-openai
 ```
 
 ---
@@ -553,120 +636,12 @@ for field, ftype in [
 
 ---
 
-## Deployment Guide
+## ⚖️ Compliance (GDPR / EU AI Act)
 
-### Environment Variables
-
-```bash
-# .env.example
-
-ANTHROPIC_API_KEY=sk-ant-...
-
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=nexus_password
-
-POSTGRES_DSN=postgresql://nexus:nexus_password@localhost:5432/nexus
-
-REDIS_URL=redis://localhost:6379
-
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-KAFKA_TOPIC=nexus-stream
-
-SIGNING_KEY=<32-byte-hex>
-
-LANGSMITH_API_KEY=ls__...
-LANGSMITH_PROJECT=nexus-rag-v1
-
-FINE_TUNE_EVERY_N_QUERIES=1000
-EPISTEMIC_EPSILON=0.15
-EPISTEMIC_MAX_ENTROPY=0.85
-```
-
-### Docker Compose (Development)
-
-```yaml
-# docker-compose.yml
-version: "3.9"
-services:
-  qdrant:
-    image: qdrant/qdrant:latest
-    ports: ["6333:6333"]
-    volumes: ["./data/qdrant:/qdrant/storage"]
-
-  neo4j:
-    image: neo4j:5
-    ports: ["7474:7474", "7687:7687"]
-    environment:
-      NEO4J_AUTH: "neo4j/nexus_password"
-    volumes: ["./data/neo4j:/data"]
-
-  postgres:
-    image: postgres:16
-    ports: ["5432:5432"]
-    environment:
-      POSTGRES_DB: nexus
-      POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus_password
-    volumes: ["./data/pg:/var/lib/postgresql/data"]
-
-  redis:
-    image: redis:7.2
-    ports: ["6379:6379"]
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    ports: ["9092:9092"]
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-  api:
-    build: .
-    ports: ["8000:8000"]
-    env_file: .env
-    depends_on: [qdrant, neo4j, postgres, redis, kafka]
-    command: uvicorn nexus.api.main:app --host 0.0.0.0 --port 8000 --reload
-
-  worker:
-    build: .
-    command: celery -A nexus.tasks worker --loglevel=info
-    env_file: .env
-    depends_on: [redis, postgres]
-```
-
-### Quick Start
-
-```bash
-# 1. Clone and install
-git clone https://github.com/your-org/nexus-rag
-cd nexus-rag
-pip install -e ".[dev]"
-
-# 2. Start infrastructure
-docker-compose up -d
-
-# 3. Initialise databases
-python scripts/setup_qdrant.py
-python scripts/setup_neo4j.py
-python scripts/setup_postgres.py
-
-# 4. Start API
-uvicorn nexus.api.main:app --reload
-
-# 5. Ingest a test document
-curl -X POST http://localhost:8000/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Hello from NEXUS RAG!", "metadata": {"source": "test"}}'
-
-# 6. Query
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What does NEXUS stand for?"}'
-```
+NEXUS RAG is designed to meet strict regulatory standards:
+- **Right to Be Forgotten:** The `AmnesiaEngine` traces data lineage across all stores and issues HMAC-signed deletion certificates.
+- **Traceability:** The `KnowledgeEvolutionManager` ensures facts are never silently deleted, maintaining a full audit trail of fact supersession.
+- **Transparency:** The `SelfHealingVerifier` flags unsupported claims as `[⚠️ UNCERTAIN]` rather than hallucinating.
 
 ---
 
@@ -695,6 +670,17 @@ python tests/benchmarks/bench_speed.py
 ```
 
 ---
+
+## 🧪 Testing
+
+```bash
+# Run unit tests (no external services needed)
+pytest tests/unit/ -v
+
+# Run integration tests (requires docker-compose infrastructure)
+pytest tests/integration/ -v
+```
+
 
 ## Research References
 
