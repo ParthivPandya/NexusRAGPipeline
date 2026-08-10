@@ -21,11 +21,155 @@ NEXUS RAG is a production-ready, highly modular retrieval-augmented generation p
 
 It implements an advanced **17-component architecture** featuring omnimodal embeddings, a living temporal knowledge graph, causal reasoning, GDPR machine unlearning, and self-healing verification.
 
+Every component serves three master principles:
+1. **ACCURACY OVER SPEED** — but optimize speed without sacrificing accuracy
+2. **HONESTY OVER COMPLETENESS** — better to abstain than to hallucinate
+3. **EVOLUTION OVER STASIS** — the system must improve with every query
+
 ---
 
-## 🚀 Key Features
+## ✨ What Makes NEXUS Different
 
-### 🏛️ The 8 Core Pillars
+| Capability | LangChain | LlamaIndex | GraphRAG | RAGFlow | **NEXUS** |
+|---|---|---|---|---|---|
+| **Unified multi-modal embedding** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Causal + counterfactual retrieval** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Principled abstention (epistemic)** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **GDPR machine unlearning** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Real-time streaming ingestion** | ⚠️ | ⚠️ | ❌ | ⚠️ | ✅ |
+| **Per-claim confidence scores** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Failure forensics diagnosis** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Cross-lingual reasoning bridge** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Semantic boundary chunking** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Knowledge evolution manager** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Temporal knowledge graph** | ❌ | ❌ | ⚠️ | ❌ | ✅ |
+| **Self-healing auto-correction** | ❌ | ⚠️ | ❌ | ❌ | ✅ |
+| **Conflict source resolution** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Self-optimizing feedback loop** | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+## 🏗️ Master Architecture
+
+```text
+╔═════════════════════════════════════════════════════════════════════════════╗
+║                         NEXUS RAG — MASTER ARCHITECTURE                      ║
+╠═════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │                     INPUT LAYER  (Any Modality)                      │    ║
+║  │  ┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬───────┐  │    ║
+║  │  │ Text │ PDF  │Image │Audio │Video │ Code │Table │Stream│Formula│  │    ║
+║  │  └──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴───────┘  │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [GAP 6]  SEMANTIC BOUNDARY CHUNKER                           │    ║
+║  │    Vision-guided · Discourse-aware · Topic-shift detection           │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 1]  OMNI-MODAL UNIFICATION ENGINE                    │    ║
+║  │    Single 1024-dim embedding space · All modalities comparable       │    ║
+║  └──────────────────┬────────────────────────┬──────────────────────────┘    ║
+║                     │                        │                                ║
+║                     ▼                        ▼                                ║
+║  ┌─────────────────────────┐   ┌──────────────────────────────────────┐      ║
+║  │  [PILLAR 2]             │   │  [GAP 2]  CAUSAL KNOWLEDGE GRAPH      │      ║
+║  │  TEMPORAL KNOWLEDGE     │   │  Cause-effect edges · What-if paths   │      ║
+║  │  GRAPH                  │   └──────────────────────────────────────┘      ║
+║  └─────────────────────────┘                                                  ║
+║                                                                               ║
+║  ══════════════════════════  QUERY ARRIVES  ═══════════════════════════════  ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [GAP 5]  STREAMING FRESHNESS CHECK                           │    ║
+║  │    Flush any pending micro-batch before answering                    │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │              SEMANTIC CACHE  (Cosine ≥ 0.92 → Instant Return)        │    ║
+║  └───────────────────────────MISS──────────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 3]  QUERY DNA CLASSIFIER                             │    ║
+║  │    10 dimensions · Routes to optimal retrieval strategy              │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [GAP 3]  CROSS-LINGUAL REASONING BRIDGE                      │    ║
+║  │    Concept extraction · Cultural alignment · Reasoning scaffold      │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 4]  ADAPTIVE RETRIEVAL ROUTER                        │    ║
+║  └────┬─────────────┬────────────────┬─────────────┬────────────────────┘    ║
+║       │             │                │             │                          ║
+║       ▼             ▼                ▼             ▼                          ║
+║  ┌─────────┐  ┌──────────┐  ┌────────────┐  ┌──────────┐                   ║
+║  │ Dense   │  │BM25+SPLADE│  │Causal Graph│  │Temporal  │                   ║
+║  │ HNSW    │  │ Sparse   │  │ Traversal  │  │ Search   │                   ║
+║  └─────────┘  └──────────┘  └────────────┘  └──────────┘                   ║
+║       │             │                │             │                          ║
+║       └─────────────┴────────────────┴─────────────┘                         ║
+║                                      │  RRF Fusion                            ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [GAP 7]  MODALITY-AWARE RERANKER                             │    ║
+║  │    Query-type × Modality weights · Cross-encoder scoring             │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 5]  CONFLICT RESOLUTION ENGINE                       │    ║
+║  │    NLI contradiction detection · Credibility scoring · Resolution    │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [GAP 1]  EPISTEMIC SUFFICIENCY ENGINE                        │    ║
+║  │    Entropy minimization · ANSWER / ABSTAIN / RETRIEVE_MORE          │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 6]  LLM GENERATION + UNCERTAINTY QUANTIFIER          │    ║
+║  │    Per-claim confidence · Streaming output · Source attribution      │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 7]  SELF-HEALING VERIFIER                            │    ║
+║  │    NLI claim verification · Auto-regenerate · Max 3 iterations       │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [GAP 8]  FAILURE FORENSICS ENGINE                            │    ║
+║  │    Retrieval / Comprehension / Reasoning / Parametric diagnosis      │    ║
+║  └───────────────────────────────────┬──────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║  ┌──────────────────────────────────────────────────────────────────────┐    ║
+║  │         [PILLAR 8]  SELF-OPTIMIZING FEEDBACK LOOP                    │    ║
+║  │    Signal recording · Weight rebalancing · Periodic fine-tune        │    ║
+║  └──────────────────────────────────────────────────────────────────────┘    ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║                  FINAL ANSWER + CITATIONS + PER-CLAIM CONFIDENCE              ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+## 🚀 The 8 Core Pillars
 1. **Omni-Modal Unification Engine:** Single 1024-dim embedding space for text, images, audio, video, code, and tables.
 2. **Living Temporal Knowledge Graph:** Auto-builds from documents, tracking fact supersession and temporal validity.
 3. **Query DNA Classifier:** Scores queries across 10 semantic dimensions to dynamically weight retrievers.
@@ -35,7 +179,7 @@ It implements an advanced **17-component architecture** featuring omnimodal embe
 7. **Self-Healing Verifier:** Iterative fact-checking and targeted regeneration for unsupported claims.
 8. **Self-Optimizing Feedback Loop:** Continual learning from user signals with automated fine-tuning.
 
-### 🔬 The 9 Gap Solutions
+## 🔬 The 9 Gap Solutions
 1. **Epistemic Sufficiency Engine:** Shannon entropy-based dynamic termination (Answer, Abstain, or Retrieve More).
 2. **Causal-Counterfactual Layer:** Answers *"What if X hadn't happened?"* using knowledge graph traversal.
 3. **Cross-Lingual Reasoning Bridge:** Language-agnostic conceptual alignment and cultural context injection.
@@ -45,41 +189,6 @@ It implements an advanced **17-component architecture** featuring omnimodal embe
 7. **Modality-Aware Reranker:** Cross-encoder reranking tailored to the query's optimal modality.
 8. **Failure Forensics Engine:** 5-mode diagnostic cascade for tracing exact failure points.
 9. **Knowledge Evolution Manager:** Tracks the full lifecycle of facts (Current → Superseded | Contested | Retracted).
-
----
-
-## 🏗️ Architecture
-
-```mermaid
-graph TD
-    User([User Query]) --> DNA[Query DNA Classifier]
-    DNA --> Cache[Semantic Cache]
-    Cache -- Miss --> XRAG[Cross-Lingual Bridge]
-    XRAG --> Router{Adaptive Retrieval Router}
-    
-    Router --> |Weight 1| Qdrant[(Qdrant: Dense/Temporal)]
-    Router --> |Weight 2| Neo4j[(Neo4j: Causal KG)]
-    Router --> |Weight 3| BM25[(BM25: Sparse)]
-    
-    Qdrant --> Fusion[Weighted RRF Fusion]
-    Neo4j --> Fusion
-    BM25 --> Fusion
-    
-    Fusion --> Reranker[Modality-Aware Reranker]
-    Reranker --> Conflict[Conflict Resolution]
-    Conflict --> Epistemic{Epistemic Sufficiency}
-    
-    Epistemic -->|High Entropy| Abstain[Abstain & Suggest]
-    Epistemic -->|Low Entropy| Gen[LLM Generation]
-    
-    Gen --> UQ[Uncertainty Quantifier]
-    UQ --> Healer[Self-Healing Verifier]
-    Healer -- Iterative Fix --> Router
-    Healer --> Output([Final Answer + Citations])
-    
-    Output --> Forensics[Failure Forensics]
-    Forensics --> Feedback[(PostgreSQL: Feedback Loop)]
-```
 
 ---
 
@@ -106,8 +215,8 @@ graph TD
 
 ### 2. Installation
 ```bash
-git clone https://github.com/your-org/nexus-rag.git
-cd nexus-rag
+git clone https://github.com/ParthivPandya/NexusRAGPipeline.git
+cd NexusRAGPipeline
 
 # Create virtual environment
 python -m venv .venv
