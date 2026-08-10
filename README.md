@@ -287,3 +287,681 @@ pytest tests/unit/ -v
 # Run integration tests (requires docker-compose infrastructure)
 pytest tests/integration/ -v
 ```
+
+
+## 6. Complete Tech Stack
+
+```
+CATEGORY          TOOL                           VERSION    ROLE
+─────────────────────────────────────────────────────────────────────────────
+Vector DB         Qdrant                         1.9+       HNSW index + filters
+Knowledge Graph   Neo4j                          5.x        Temporal + causal graph
+Sparse Retrieval  rank_bm25 (BM25Okapi)         0.2.2      Keyword search
+Streaming         Apache Kafka                   3.6        Event stream source
+Cache             Redis                          7.2        Semantic cache + tasks
+Relational DB     PostgreSQL                     16         Feedback / certs / lineage
+Text Embedding    intfloat/e5-large-v2           latest     Primary dense encoder
+Multilingual Emb  intfloat/multilingual-e5-large latest     Cross-lingual bridge
+Code Embedding    microsoft/codebert-base        latest     Code understanding
+Table Model       google/tapas-base              latest     Table comprehension
+Image Encoder     openai/clip-vit-large-patch14  latest     Image embeddings
+Audio Model       openai/whisper-base            latest     Transcription + audio
+Cross-Encoder     ms-marco-MiniLM-L-6-v2         latest     Reranking
+NLI Model         nli-deberta-v3-small           latest     Conflict + verification
+LLM               claude-sonnet-4-6              latest     Generation + reasoning
+API Framework     FastAPI + uvicorn              0.110+     REST API
+Task Queue        Celery                         5.3        Async fine-tuning jobs
+Containerisation  Docker + Docker Compose        latest     Local dev
+Orchestration     Kubernetes                     1.29+      Production
+Monitoring        LangSmith                      latest     Full pipeline tracing
+```
+
+**One-shot install:**
+```bash
+pip install qdrant-client neo4j rank-bm25 anthropic \
+            sentence-transformers transformers torch fastapi uvicorn \
+            celery redis psycopg2-binary kafka-python openai-whisper \
+            langsmith langdetect spacy numpy pydantic clip-by-openai
+```
+
+---
+
+## 7. Project Directory Structure
+
+```
+nexus-rag/
+│
+├── README.md
+├── pyproject.toml
+├── .env.example
+├── docker-compose.yml
+│
+├── nexus/
+│   ├── __init__.py
+│   ├── config.py                     # All env-driven config
+│   │
+│   ├── core/                         # 8 Core Pillars
+│   │   ├── unified_encoder.py        # Pillar 1
+│   │   ├── knowledge_graph.py        # Pillar 2
+│   │   ├── query_classifier.py       # Pillar 3
+│   │   ├── retrieval_router.py       # Pillar 4
+│   │   ├── conflict_resolver.py      # Pillar 5
+│   │   ├── uncertainty_quantifier.py # Pillar 6
+│   │   ├── self_healer.py            # Pillar 7
+│   │   └── feedback_loop.py          # Pillar 8
+│   │
+│   ├── gaps/                         # 9 Gap Solutions
+│   │   ├── epistemic_engine.py       # Gap 1
+│   │   ├── causal_counterfactual.py  # Gap 2
+│   │   ├── cross_lingual_bridge.py   # Gap 3
+│   │   ├── amnesia_engine.py         # Gap 4
+│   │   ├── streaming_ingestor.py     # Gap 5
+│   │   ├── semantic_chunker.py       # Gap 6
+│   │   ├── modality_reranker.py      # Gap 7
+│   │   ├── forensics_engine.py       # Gap 8
+│   │   └── knowledge_evolution.py    # Gap 9
+│   │
+│   ├── pipeline/
+│   │   ├── nexus_pipeline.py         # Master orchestrator
+│   │   ├── ingest_pipeline.py        # Document ingest flow
+│   │   └── query_pipeline.py         # Query answer flow
+│   │
+│   ├── storage/
+│   │   ├── qdrant_store.py
+│   │   ├── neo4j_store.py
+│   │   ├── postgres_store.py
+│   │   ├── redis_cache.py
+│   │   └── bm25_store.py
+│   │
+│   ├── api/
+│   │   ├── main.py
+│   │   ├── routes/
+│   │   │   ├── query.py       # POST /query
+│   │   │   ├── ingest.py      # POST /ingest
+│   │   │   ├── forget.py      # POST /forget
+│   │   │   ├── feedback.py    # POST /feedback
+│   │   │   └── health.py      # GET /health
+│   │   └── models/
+│   │       ├── requests.py
+│   │       └── responses.py
+│   │
+│   ├── tasks.py                      # Celery tasks (fine-tuning, eviction)
+│   └── utils/
+│       ├── language.py
+│       ├── document_parser.py
+│       ├── credibility_scorer.py
+│       └── logging.py
+│
+├── tests/
+│   ├── unit/
+│   │   ├── test_encoder.py
+│   │   ├── test_classifier.py
+│   │   ├── test_conflict_resolver.py
+│   │   ├── test_epistemic_engine.py
+│   │   ├── test_amnesia_engine.py
+│   │   └── test_chunker.py
+│   ├── integration/
+│   │   ├── test_full_pipeline.py
+│   │   ├── test_streaming.py
+│   │   └── test_cross_lingual.py
+│   └── benchmarks/
+│       ├── bench_speed.py
+│       ├── bench_accuracy.py
+│       └── bench_hallucination.py
+│
+├── scripts/
+│   ├── setup_qdrant.py
+│   ├── setup_neo4j.py
+│   ├── setup_postgres.py
+│   ├── bulk_ingest.py
+│   └── run_eval.py
+│
+└── docker/
+    ├── Dockerfile
+    ├── docker-compose.dev.yml
+    └── docker-compose.prod.yml
+```
+
+---
+
+## 8. Database Schemas
+
+### PostgreSQL
+
+```sql
+-- Core chunk metadata
+CREATE TABLE chunks (
+    id              UUID PRIMARY KEY,
+    source_id       VARCHAR(512),
+    modality        VARCHAR(50),
+    language        CHAR(2),
+    content_hash    VARCHAR(64) UNIQUE,
+    credibility     FLOAT    DEFAULT 0.5,
+    valid_from      TIMESTAMPTZ,
+    valid_until     TIMESTAMPTZ,
+    status          VARCHAR(50) DEFAULT 'current',
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Retrieval weights (feedback-driven)
+CREATE TABLE chunk_weights (
+    chunk_id        UUID REFERENCES chunks(id) ON DELETE CASCADE,
+    query_type      VARCHAR(50),
+    weight          FLOAT DEFAULT 1.0,
+    positive_count  INT   DEFAULT 0,
+    negative_count  INT   DEFAULT 0,
+    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (chunk_id, query_type)
+);
+
+-- Query feedback log
+CREATE TABLE feedback_log (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    query           TEXT,
+    chunk_ids       UUID[],
+    answer          TEXT,
+    user_signal     VARCHAR(20),
+    latency_ms      FLOAT,
+    failure_type    VARCHAR(50),
+    ts              TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Fine-tuning pairs (positive query-chunk pairs)
+CREATE TABLE fine_tune_pairs (
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    query             TEXT,
+    positive_chunk_id UUID REFERENCES chunks(id),
+    negative_chunk_id UUID REFERENCES chunks(id),
+    ts                TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- GDPR deletion certificates (audit trail)
+CREATE TABLE deletion_certificates (
+    id                UUID PRIMARY KEY,
+    target            TEXT,
+    target_type       VARCHAR(50),
+    deletion_ts       TIMESTAMPTZ,
+    verification_hash VARCHAR(64),
+    signature         VARCHAR(64),
+    completeness      VARCHAR(50),
+    regulations       TEXT[],
+    created_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Knowledge evolution events
+CREATE TABLE evolution_log (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type   VARCHAR(50),
+    old_fact_id  VARCHAR(255),
+    new_fact_id  VARCHAR(255),
+    reason       TEXT,
+    trigger      VARCHAR(50),
+    ts           TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Conflict resolution events
+CREATE TABLE conflict_log (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    query        TEXT,
+    strategy     VARCHAR(50),
+    chunk_a_id   UUID,
+    chunk_b_id   UUID,
+    user_message TEXT,
+    ts           TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Neo4j Constraints
+
+```cypher
+CREATE CONSTRAINT IF NOT EXISTS FOR (n:Node) REQUIRE n.id IS UNIQUE;
+CREATE INDEX IF NOT EXISTS FOR (n:Node) ON (n.entity);
+CREATE INDEX IF NOT EXISTS FOR (n:Node) ON (n.valid_from);
+CREATE INDEX IF NOT EXISTS FOR (n:Node) ON (n.status);
+
+// Relationship types used:
+// (:Node)-[:CAUSES {confidence: 0.9}]->(:Node)
+// (:Node)-[:SUPERSEDES]->(:Node)
+// (:Node)-[:CONTRADICTS {nli_score: 0.85}]->(:Node)
+// (:Node)-[:TEMPORALLY_FOLLOWS]->(:Node)
+// (:Node)-[:PART_OF]->(:Node)
+```
+
+### Qdrant Collection
+
+```python
+from qdrant_client.models import (
+    Distance, VectorParams, HnswConfigDiff,
+    PayloadSchemaType, OptimizersConfigDiff
+)
+
+client.create_collection(
+    collection_name="nexus_knowledge",
+    vectors_config=VectorParams(size=1024, distance=Distance.COSINE),
+    hnsw_config=HnswConfigDiff(m=16, ef_construct=200),
+    optimizers_config=OptimizersConfigDiff(indexing_threshold=20_000)
+)
+for field, ftype in [
+    ("modality",     PayloadSchemaType.KEYWORD),
+    ("language",     PayloadSchemaType.KEYWORD),
+    ("is_streaming", PayloadSchemaType.BOOL),
+    ("valid_from",   PayloadSchemaType.FLOAT),
+    ("credibility",  PayloadSchemaType.FLOAT),
+]:
+    client.create_payload_index("nexus_knowledge", field, ftype)
+```
+
+---
+
+## 10. Master Pipeline Orchestrator
+
+```python
+# nexus/pipeline/nexus_pipeline.py
+
+import asyncio, time
+import anthropic
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class NexusResponse:
+    answer:                str
+    claims:                list          # list[ConfidenceClaim]
+    citations:             list
+    epistemic_decision:    str
+    conflicts_detected:    bool
+    conflict_message:      str
+    failure_diagnosis:     Optional[dict]
+    latency_ms:            float
+    cache_hit:             bool
+
+class NexusPipeline:
+    """Master orchestrator — 17 components, single coherent flow."""
+
+    def __init__(self, config: dict):
+        # Core pillars
+        self.encoder    = UnifiedEncoder()
+        self.kg         = TemporalKnowledgeGraph(config["neo4j_uri"], config["neo4j_auth"])
+        self.classifier = QueryDNAClassifier()
+        self.router     = AdaptiveRetrievalRouter(
+                            qdrant=self._qdrant(config), bm25=self._bm25(config),
+                            kg=self.kg, encoder=self.encoder)
+        self.conflict   = ConflictResolver()
+        self.uq         = UncertaintyQuantifier()
+        self.healer     = SelfHealingVerifier()
+        self.feedback   = FeedbackLearner(config["postgres_dsn"])
+        # Gap solutions
+        self.epistemic  = EpistemicSufficiencyEngine()
+        self.causal     = CausalCounterfactualLayer(self.kg)
+        self.xrag       = CrossLingualBridge()
+        self.amnesia    = AmnesiaEngine(
+                            self._qdrant(config), self.kg.driver,
+                            None, self._redis(config),
+                            self._pg(config), config.get("signing_key"))
+        self.streamer   = StreamingIngestor(self.encoder, self._qdrant(config),
+                                            None, self.kg)
+        self.chunker    = SemanticBoundaryChunker(self.encoder)
+        self.reranker   = ModalityAwareReranker()
+        self.forensics  = FailureForensicsEngine()
+        self.evolution  = KnowledgeEvolutionManager(self.kg, self._pg(config))
+        # Cache + LLM
+        self.cache      = SemanticCache(threshold=0.92)
+        self.llm        = anthropic.Anthropic()
+
+    async def query(self, query: str, language: str = "auto") -> NexusResponse:
+        t0 = time.time()
+
+        # 0. Semantic cache
+        cached = self.cache.get(query)
+        if cached:
+            return NexusResponse(**cached, latency_ms=(time.time()-t0)*1000,
+                                 cache_hit=True)
+
+        # 1. Streaming freshness flush
+        await self.streamer._flush()
+
+        # 2. Query DNA
+        dna = self.classifier.classify(query)
+
+        # 3. Cross-lingual bridge (if needed)
+        xl_ctx = None
+        if dna.multilingual > 0.3:
+            xl_ctx = self.xrag.build(query, dna.detected_language, [])
+
+        # 4. Parallel retrieval
+        chunks = await self.router.retrieve(dna, top_k=20)
+
+        # 5. Modality-aware reranking
+        reranked = self.reranker.rerank(query, dna, chunks, top_k=7)
+
+        # 6. Conflict resolution
+        conflict_report = self.conflict.resolve(reranked)
+        final_chunks    = conflict_report.resolved_chunks
+
+        # 7. Epistemic sufficiency
+        hypotheses  = await self._sample_hypotheses(query, final_chunks)
+        ep_report   = self.epistemic.evaluate(query, final_chunks, hypotheses)
+
+        if ep_report.decision.value == "abstain":
+            return self._abstain_response(ep_report, t0)
+
+        if ep_report.decision.value == "retrieve_more":
+            extra = await self.router.retrieve(dna, top_k=10)
+            final_chunks.extend(extra)
+
+        # 8. Generate with uncertainty quantification
+        raw_answer, claims = await self._generate_with_uncertainty(
+            query, final_chunks, dna, xl_ctx
+        )
+
+        # 9. Self-healing verification
+        healed = self.healer.verify_and_heal(
+            raw_answer, final_chunks, query, self.router
+        )
+
+        # 10. Cache result
+        self.cache.set(query, {
+            "answer": healed.healed_answer,
+            "claims": claims,
+            "citations": self._citations(final_chunks),
+            "epistemic_decision": ep_report.decision.value,
+            "conflicts_detected": conflict_report.detected,
+            "conflict_message": conflict_report.user_message,
+            "failure_diagnosis": None,
+        })
+
+        # 11. Feedback record
+        self.feedback.record(
+            query=query, chunks=final_chunks,
+            answer=healed.healed_answer, signal="pending",
+            latency_ms=(time.time()-t0)*1000
+        )
+
+        return NexusResponse(
+            answer=healed.healed_answer,
+            claims=claims,
+            citations=self._citations(final_chunks),
+            epistemic_decision=ep_report.decision.value,
+            conflicts_detected=conflict_report.detected,
+            conflict_message=conflict_report.user_message,
+            failure_diagnosis=None,
+            latency_ms=round((time.time()-t0)*1000, 1),
+            cache_hit=False
+        )
+
+    async def _sample_hypotheses(
+        self, query: str, chunks: list[UnifiedChunk], n: int = 4
+    ) -> list[str]:
+        """Generate n candidate answers at temperature > 0 for entropy estimation."""
+        ctx  = "\n\n".join(c.content for c in chunks[:5]
+                           if c.modality == Modality.TEXT)
+        resp = self.llm.messages.create(
+            model="claude-sonnet-4-6", max_tokens=400,
+            system="Answer the question. Be concise.",
+            messages=[{"role":"user","content":
+                       f"Context:\n{ctx}\n\nQuestion: {query}\n\nAnswer:"}]
+        )
+        base = resp.content[0].text
+        # For true entropy estimation, sample at T>0; simplified: return variations
+        return [base, f"Based on the evidence: {base}",
+                f"The data suggests: {base}", f"In summary: {base}"]
+
+    async def _generate_with_uncertainty(
+        self,
+        query:     str,
+        chunks:    list[UnifiedChunk],
+        dna:       QueryDNA,
+        xl_ctx:    Optional[XLingualContext]
+    ):
+        ctx    = "\n\n".join(c.content for c in chunks[:7]
+                              if c.modality == Modality.TEXT)
+        system = (
+            "You are a precise, citation-grounded assistant. "
+            "Answer using ONLY the provided context. "
+            "If the context does not support a claim, say so explicitly. "
+            + (xl_ctx.reasoning_scaffold if xl_ctx else "")
+        )
+        resp = self.llm.messages.create(
+            model="claude-sonnet-4-6", max_tokens=1024,
+            system=system,
+            messages=[{"role":"user","content":
+                       f"Context:\n{ctx}\n\nQuestion: {query}"}]
+        )
+        raw = resp.content[0].text
+
+        # Quantify uncertainty per claim
+        claims = []
+        for sentence in raw.split(". "):
+            if len(sentence.strip()) < 15:
+                continue
+            relevant_chunks = [c for c in chunks
+                                if c.modality == Modality.TEXT][:5]
+            cc = self.uq.quantify(sentence.strip(), relevant_chunks)
+            claims.append(cc)
+
+        return raw, claims
+
+    def _abstain_response(self, ep: EpistemicReport, t0: float) -> NexusResponse:
+        msg = (
+            "I cannot reliably answer this question — the evidence in my "
+            "knowledge base is insufficient or contradictory. "
+        )
+        if ep.suggested_sources:
+            msg += f"Suggested sources: {', '.join(ep.suggested_sources)}."
+        if ep.partial_evidence:
+            msg += "\n\nClosest available evidence:\n" + \
+                   "\n".join(f"• {e}" for e in ep.partial_evidence)
+        return NexusResponse(
+            answer=msg, claims=[], citations=[],
+            epistemic_decision="abstain",
+            conflicts_detected=False, conflict_message="",
+            failure_diagnosis=None,
+            latency_ms=round((time.time()-t0)*1000, 1),
+            cache_hit=False
+        )
+
+    def _citations(self, chunks: list[UnifiedChunk]) -> list[dict]:
+        return [
+            {"chunk_id": c.id,
+             "source": c.metadata.get("source_url", "unknown"),
+             "excerpt": (c.content[:120] + "…"
+                         if isinstance(c.content, str) else ""),
+             "credibility": c.credibility_score,
+             "language": c.language}
+            for c in chunks
+        ]
+
+    def _qdrant(self, cfg):
+        from qdrant_client import QdrantClient
+        return QdrantClient(host=cfg["qdrant_host"], port=cfg.get("qdrant_port",6333))
+
+    def _redis(self, cfg):
+        import redis
+        return redis.from_url(cfg["redis_url"])
+
+    def _pg(self, cfg):
+        import psycopg2
+        return psycopg2.connect(cfg["postgres_dsn"])
+
+    def _bm25(self, cfg):
+        return None   # Initialise from stored corpus on startup
+```
+
+---
+
+## 13. Deployment Guide
+
+### Environment Variables
+
+```bash
+# .env.example
+
+ANTHROPIC_API_KEY=sk-ant-...
+
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=nexus_password
+
+POSTGRES_DSN=postgresql://nexus:nexus_password@localhost:5432/nexus
+
+REDIS_URL=redis://localhost:6379
+
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_TOPIC=nexus-stream
+
+SIGNING_KEY=<32-byte-hex>
+
+LANGSMITH_API_KEY=ls__...
+LANGSMITH_PROJECT=nexus-rag-v1
+
+FINE_TUNE_EVERY_N_QUERIES=1000
+EPISTEMIC_EPSILON=0.15
+EPISTEMIC_MAX_ENTROPY=0.85
+```
+
+### Docker Compose (Development)
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports: ["6333:6333"]
+    volumes: ["./data/qdrant:/qdrant/storage"]
+
+  neo4j:
+    image: neo4j:5
+    ports: ["7474:7474", "7687:7687"]
+    environment:
+      NEO4J_AUTH: "neo4j/nexus_password"
+    volumes: ["./data/neo4j:/data"]
+
+  postgres:
+    image: postgres:16
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus_password
+    volumes: ["./data/pg:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7.2
+    ports: ["6379:6379"]
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  api:
+    build: .
+    ports: ["8000:8000"]
+    env_file: .env
+    depends_on: [qdrant, neo4j, postgres, redis, kafka]
+    command: uvicorn nexus.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build: .
+    command: celery -A nexus.tasks worker --loglevel=info
+    env_file: .env
+    depends_on: [redis, postgres]
+```
+
+### Quick Start
+
+```bash
+# 1. Clone and install
+git clone https://github.com/your-org/nexus-rag
+cd nexus-rag
+pip install -e ".[dev]"
+
+# 2. Start infrastructure
+docker-compose up -d
+
+# 3. Initialise databases
+python scripts/setup_qdrant.py
+python scripts/setup_neo4j.py
+python scripts/setup_postgres.py
+
+# 4. Start API
+uvicorn nexus.api.main:app --reload
+
+# 5. Ingest a test document
+curl -X POST http://localhost:8000/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello from NEXUS RAG!", "metadata": {"source": "test"}}'
+
+# 6. Query
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What does NEXUS stand for?"}'
+```
+
+---
+
+## 14. Evaluation & Benchmarks
+
+| Metric | Target | How Measured |
+|--------|--------|--------------|
+| Retrieval Hit@5 | > 88% | RAGAS context recall |
+| RAGAS Faithfulness | > 0.90 | NLI entailment check |
+| RAGAS Answer Relevance | > 0.88 | Cosine similarity |
+| Hallucination Rate | < 3% | Self-healer flags / total |
+| Epistemic Abstention FPR | < 5% | Abstains on answerable Qs |
+| Cache hit latency | < 20ms | P50 response time |
+| Cold query latency | < 120ms | P50 response time |
+| GDPR deletion time | < 5s | Certificate issuance |
+| Streaming ingestion lag | < 200ms | Message → queryable |
+| Conflict detection F1 | > 0.82 | Manually labelled set |
+| Cross-lingual accuracy | > 75% | XRAG benchmark |
+
+**Run benchmarks:**
+```bash
+python tests/benchmarks/bench_accuracy.py --dataset RAGAS
+python tests/benchmarks/bench_accuracy.py --dataset CRAG
+python tests/benchmarks/bench_hallucination.py
+python tests/benchmarks/bench_speed.py
+```
+
+---
+
+## 15. Research References
+
+| Paper | Year | Venue | Validates |
+|-------|------|-------|-----------|
+| Epistemic Mismatch (Ghafouri et al.) | 2025 | ACL | Gap 1 |
+| Entropic Claim Resolution (arXiv 2603.28444) | 2026 | arXiv | Gap 1 algorithm |
+| CausalRAG (arXiv 2503.19878) | 2025 | ACL Findings | Gap 2 |
+| Causal-Counterfactual RAG (arXiv 2509.14435) | 2025 | arXiv | Gap 2 |
+| XRAG Benchmark (arXiv 2505.10089) | 2025 | EMNLP | Gap 3 |
+| CORAL (arXiv 2604.25676) | 2026 | arXiv | Gap 3 cultural |
+| All Languages Matter (ACL 2026) | 2026 | ACL | Gap 3 bias |
+| Privacy-Preserving RAG (arXiv 2412.04697) | 2024 | arXiv | Gap 4 |
+| Machine Unlearning Meets RAG (Wang et al.) | 2025 | IEEE Trans. | Gap 4 |
+| From Static to Dynamic RAG (arXiv 2508.05662) | 2025 | arXiv | Gap 5 |
+| Vision-Guided Chunking (arXiv 2506.16035) | 2025 | arXiv | Gap 6 |
+| CoRe-MMRAG (arXiv 2506.02544) | 2025 | arXiv | Gap 7 |
+| Image-Text Retrieval Comparison (arXiv 2511.16654) | 2025 | arXiv | Gap 7 |
+| RAGChecker (Ru et al.) | 2024 | NeurIPS | Gap 8 |
+| RAG Taxonomy (arXiv 2408.02854) | 2024 | arXiv | Gap 8 |
+| RAG or Learning? (ACL 2026 Findings) | 2026 | ACL | Gap 9 |
+| Catastrophic Forgetting (Zylos Research) | 2026 | Industry | Gap 9 |
+| CRAG Benchmark (arXiv 2409.15337) | 2024 | KDD | Evaluation |
+| Long-Context LLMs in RAG (ICLR 2025) | 2025 | ICLR | Context optimization |
+
+---
+
+> **Where to start today:**  
+> `docker-compose up -d` → `python scripts/setup_qdrant.py` → implement `SemanticBoundaryChunker` → implement `UnifiedEncoder` for text.  
+> Everything else builds on those two.  
+>  
+> **Single highest-impact first feature:**  
+> `AmnesiaEngine` (Gap 4) — it is the only component with a legal deadline (EU AI Act, August 2025). No other open-source RAG system has it.
+
